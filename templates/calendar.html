@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Calendar
+{% endblock %}
+
+{% block main %}
+    <div class="bg"></div>
+    <div class="ui container">
+        <h1>Leftovers Timeline</h1>
+        <p><em>NOTE: best before dates are estimated based on proper storage practices. 
+            Always consider the food's appearance/smell before consuming and dispose at the first sign of spoilage.</em></p>
+        <br>
+        <div class="ui container content">
+            <div class="ui grid">
+                <div class="ui sixteen column">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>  
+        $(document).ready(function() {
+            
+            $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,basicWeek,basicDay'
+            },
+            navLinks: true, // can click day/week names to navigate views
+            editable: true,
+            eventLimit: true, // allow "more" link when too many events
+            events: [
+                {% for food in foods %}
+                    {
+                    title: '{{ food.name }} ({{ food.location }})',
+                    start: '{{ food.start_date }}',
+                    end: '{{ food.best_before }}',
+                    className: 'event-green'
+                    },
+                    {
+                    title: '{{ food.name }} ({{ food.location }}) BEST BEFORE',
+                    start: '{{ food.best_before }}',
+                    className: 'event-red'
+                    },
+                {% endfor %}
+            ]
+            });
+            
+        });
+    </script>
+{% endblock %}

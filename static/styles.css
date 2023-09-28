@@ -1,0 +1,164 @@
+nav .navbar-brand {
+    font-size: xx-large;
+}
+
+nav .navbar-brand .yellow {
+    color: #f5b82e;
+}
+
+nav .navbar-brand .green {
+    color: #2e944b;
+}
+
+nav .nav-link {
+    color: #ffffff;
+    font-size: large;
+}
+
+.content {
+    background-color:rgba(255,255,255,.8);
+    border-radius:.25em;
+    box-shadow:0 0 .25em rgba(0,0,0,.25);
+    box-sizing:border-box;
+}
+
+h1 {
+    font-size: 4em;
+    font-weight: 500;
+}
+
+.card-container {
+    max-width: 70%;
+    margin: 0 auto;
+    justify-content: left;
+}
+
+.badge {
+    font-size: 0.5em;
+}
+
+table {
+    background-color: white;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+table th,
+table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+}
+
+.btn-primary {
+    background-color: #2e944b;
+    border-color: #2e944b;
+}
+
+.btn-primary:hover {
+    background-color: #f5b82e;
+    transition: 0.4s;
+}
+
+.inline {
+    display: inline-block;
+}
+
+.event-green {
+    background-color: #2e944b;
+    border-color: #2e944b;
+    color: white;
+}
+
+.event-red {
+    background-color: #ff0000;
+    border-color: #ff0000;
+    color: white;
+}
+
+.fade-in{
+    animation: fadeIn 3s;
+    -webkit-animation: fadeIn 3s;
+    -moz-animation: fadeIn 3s;
+    -o-animation: fadeIn 3s;
+    -ms-animation: fadeIn 3s;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@-moz-keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@-o-keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@-ms-keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.bg {
+    animation:slide 3s ease-in-out infinite alternate;
+    background-image: linear-gradient(-60deg, #2e944b 50%, rgb(181, 255, 85) 50%);
+    bottom:0;
+    left:-50%;
+    opacity:.5;
+    position:fixed;
+    right:-50%;
+    top:0;
+    z-index:-1;
+}
+  
+.bg2 {
+    animation-direction:alternate-reverse;
+    animation-duration:4s;
+}
+  
+.bg3 {
+    animation-duration:5s;
+}
+
+@keyframes slide {
+    0% {
+      transform:translateX(-25%);
+    }
+    100% {
+      transform:translateX(25%);
+    }
+}

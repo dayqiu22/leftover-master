@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    My Menu
+{% endblock %}
+
+{% block main %}
+    <div class="bg"></div>
+    <div class="container card-container">
+        <h1>Today's specials for {{ user.username }}!</h1>
+        <p><em>NOTE: best before dates are estimated based on proper storage practices. 
+            Always consider the food's appearance/smell before consuming and dispose at the first sign of spoilage.</em></p>
+        <br>
+        <div class="row">
+            <div class="col-sm-4 mb-3 mb-sm-0">
+                <div class="card text-bg-light mb-3">
+                    <div class="card-header h3">
+                        Track new leftovers and groceries:
+                    </div>
+                    <div class="card-body">
+                        <form action="/track" method="post">
+                            <div class="mb-3">
+                                <input autocomplete="off" autofocus class="form-control mx-auto" id="name" name="name" placeholder="Name" type="text">
+                                <select class="form-control mx-auto" id="group" name="group">
+                                    <option selected disabled>Primary group</option>
+                                    <option value="Cooked foods/meats">Cooked foods/meats</option>
+                                    <option value="Fruits/vegetables">Fruits/vegetables</option>
+                                    <option value="Baked goods">Baked goods</option>
+                                    <option value="Whole eggs">Whole eggs</option>
+                                    <option value="Raw meat">Raw meat</option>
+                                    <option value="Milk/soft cheeses">Milk/soft cheeses</option>
+                                    <option value="Hard cheeses">Hard cheeses</option>
+                                    <option value="Preserved">Preserved</option>
+                                </select>
+                                <select class="form-control mx-auto" id="location" name="location">
+                                    <option selected disabled>Storage method</option>
+                                    <option value="Fridge">Fridge</option>
+                                    <option value="Freezer">Freezer</option>
+                                </select>
+                                <input autocomplete="off" autofocus class="form-control mx-auto" id="portions" name="portions" placeholder="Portions available" type="number">
+                            </div>
+                    
+                            <button class="btn btn-primary" type="submit">TRACK</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% for food in foods %}
+            <div class="col-sm-4 mb-3 mb-sm-0">
+                <div class="card text-bg-dark mb-3">
+                    <div class="card-header h3">
+                        {{ food.name }}
+                        <br>
+                        {% if (food.food_group == "Cooked foods/meats") or (food.food_group == "Raw meat") %}
+                            <span class="badge rounded-pill text-bg-danger">{{ food.food_group }}</span>
+                        {% elif (food.food_group == "Baked goods") or (food.food_group == "Whole eggs") %}
+                            <span class="badge rounded-pill text-bg-warning">{{ food.food_group }}</span>
+                        {% elif food.food_group == "Fruits/vegetables" %}
+                            <span class="badge rounded-pill text-bg-success">{{ food.food_group }}</span>
+                        {% elif food.food_group == "Milk/soft cheeses" %}
+                            <span class="badge rounded-pill text-bg-info">{{ food.food_group }}</span>
+                        {% elif (food.food_group == "Hard cheeses") or (food.food_group == "Preserved") %}
+                            <span class="badge rounded-pill text-bg-primary">{{ food.food_group }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Portions left: {{ food.portions }}</h5>
+                        <p class="card-text">Location: {{ food.location }}</p>
+                        <p class="card-text">Best before: {{ food.best_before }} </p>
+                        <form action="/consume" method="post">
+                            <div class="mb-3">
+                                <input type="hidden" name="id" value="{{ food.id }}">
+                                <input type="hidden" name="name" value="{{ food.name }}">
+                                <input type="hidden" name="consumed" value="1">
+                            </div>
+                    
+                            <button class="btn btn-secondary" type="submit">CONSUME 1</button>
+                        </form>
+                        <form action="/consume" method="post">
+                            <div class="mb-3">
+                                <input type="hidden" name="id" value="{{ food.id }}">
+                                <input type="hidden" name="name" value="{{ food.name }}">
+                                <input type="hidden" name="consumed" value="{{ food.portions }}">
+                            </div>
+                    
+                            <button class="btn btn-primary" type="submit">CONSUME ALL</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

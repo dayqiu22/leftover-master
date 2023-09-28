@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Register User
+{% endblock %}
+
+{% block main %}
+    <div class="bg"></div>
+    <div class="bg bg2"></div>
+    <div class="bg bg3"></div>
+    <div>
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4 pb-5 content">
+                <div class="container text-center mt-5 pt-3">
+                    <h2 class="display-4">Register User</h2>
+                    <h2 class="lead fade-in">Ready to make the most of your meals?</h2>
+                    <br>
+                </div>
+            
+                <form action="/register" method="post" class="text-center">
+                    <div class="mb-3">
+                        <input autocomplete="off" autofocus class="form-control mx-auto w-50" 
+                        id="username" name="username" placeholder="Username" type="text">
+                        <br>
+                        Username must be at least 4 characters.
+                    </div>
+                    <div class="mb-3">
+                        <input class="form-control mx-auto w-50" 
+                        id="password" name="password" placeholder="Password" type="password">
+                        <br>
+                        Password must be at least 6 characters.
+                    </div>
+                    <div class="mb-3">
+                        <input class="form-control mx-auto w-50" 
+                        id="password" name="confirmation" placeholder="Re-enter your password" type="password">
+                    </div>
+                    <button class="btn btn-primary" type="submit">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
