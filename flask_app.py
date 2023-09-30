@@ -15,7 +15,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure SQLite database
-db = SQL("sqlite:////home/dayqiu19/leftover-master/leftover.db")
+db = SQL("sqlite:///leftover.db")
 
 # Ensure responses are not cached
 @app.after_request
