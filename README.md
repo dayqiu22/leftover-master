@@ -1,1 +1,11 @@
-# A leftover and groceries inventory manager/best before date tracker implemented with the Flask framework and SQLite.
+# LeftoverMaster
+LeftoverMaster was inspired by the untouched ingredients sitting at the back of my own fridge and stories of university students throwing out their meal prep after making too much of a particular meal. It is a Flask web app implemented with Python, HTML, CSS, and SQLite intended to function as a meal prep and leftovers tracking companion with additional functions of being an inventory system/to-do list for food items. Food waste is rampant in many households due to over-purchasing and improper storage methods. LeftoverMaster was designed with the goal to help reduce food waste world-wide. Food supply is not always reliable globally and we should do our best to minimize waste and reduce hunger in regions that are less fortunate.
+
+## Usage
+LeftoverMaster allows users to register for an individual account. After logging in, the homepage displays all food items tracked by the user, the type of food, their remaining portions, the storage location, and the estimated best before date. The estimated best before date is calculated based on the type off food and the storage method. To simulate the consumption of an item, CONSUME 1 or CONSUME ALL can be clicked and once all portions are consumed the item will be removed from the account. Food items past their best before date will not be automatically removed from the user account. Each time a food item is tracked, an event is created and placed on the calendar view, representing the consumable period in green and the best before date in red.
+
+## Stack and Implementation
+LeftoverMaster was built using the Flask framework with a Python backend, SQLite database for users and tracked foods, and an HTML/CSS/JS frontend. Bootstrap was used for components of the UI and the calendar was taken from Semantic UI. The food groups were chosen based on research of common food types with storage concerns. The estimated best before date for foods stored in the freezer was calculated as: fridge estimated best before date * 7. The multiplier of 7 was an average taken from research and ChatGPT for on average how much longer foods can last in a freezer vs in a fridge.
+
+## What's next for LeftoverMaster
+In the future, we plan to implement notifications about best before dates through the Google Calendar API, and potentially intelligent recommendations for food prep scheduling and having a balanced diet using the ChatGPT API.
