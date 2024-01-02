@@ -1,21 +1,42 @@
 import datetime
+import json
+import os
+import sqlite3
 
-from cs50 import SQL
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
+from oauthlib.oauth2 import WebApplicationClient
+import requests
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 
+from db import init_db_command, get_db, close_db
+
+# Google Configuration
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
+GOOGLE_DISCOVERY_URL = (
+    "https://accounts.google.com/.well-known/openid-configuration"
+)
+
 # Configure application
 app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
-# Configure SQLite database
-db = SQL("sqlite:///leftover.db")
+# Naive database setup
+try:
+    init_db_command()
+except sqlite3.OperationalError:
+    # Already been created
+    pass
+
+# OAuth2 client setup
+client = WebApplicationClient(GOOGLE_CLIENT_ID)
 
 # Ensure responses are not cached
 @app.after_request
@@ -62,15 +83,18 @@ def expiry(group):
 @app.route("/")
 @login_required
 def index():
+    db = get_db()
     # Display foods, their location, and best before
     try:
-        user = db.execute("SELECT * FROM users WHERE id = ?", session["user_id"])[0]
+        user = db.execute("SELECT * FROM users WHERE id = ?", (session["user_id"],)).fetchall()[0]
     except IndexError:
         return redirect("/login")
 
-    db.execute("DELETE FROM foods WHERE (user_id, portions) = (?, ?)", session["user_id"], 0)
+    db.execute("DELETE FROM foods WHERE (user_id, portions) = (?, ?)", (session["user_id"], 0,))
+    db.commit()
 
-    foods = db.execute("SELECT * FROM foods WHERE user_id =?", session["user_id"])
+    foods = db.execute("SELECT * FROM foods WHERE user_id =?", (session["user_id"],)).fetchall()
+    close_db()
 
     return render_template("index.html", user=user, foods=foods)
 
@@ -78,6 +102,7 @@ def index():
 @app.route("/track", methods=["POST"])
 @login_required
 def track():
+    db = get_db()
     # Tracks new leftovers/groceries
 
     name = request.form.get("name").upper()
@@ -111,7 +136,9 @@ def track():
 
     # Add leftovers to database
     db.execute("INSERT INTO foods (user_id, name, food_group, location, start_date, best_before, portions) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                session["user_id"], name, group, location, start_date, best_before, portions)
+                (session["user_id"], name, group, location, start_date, best_before, portions,))
+    db.commit()
+    close_db()
 
     flash("Tracking new leftovers!")
     return redirect("/")
@@ -120,6 +147,7 @@ def track():
 @app.route("/consume", methods=["POST"])
 @login_required
 def consume():
+    db = get_db()
     # Consumes 1 or all portions of a food item
 
     name = request.form.get("name")
@@ -139,18 +167,15 @@ def consume():
         return redirect("/")
 
     # Update database
-    foods = db.execute("SELECT * FROM foods WHERE (id, user_id, name) = (?, ?, ?)", id, session["user_id"], name)
+    foods = db.execute("SELECT * FROM foods WHERE (id, user_id, name) = (?, ?, ?)", (id, session["user_id"], name,)).fetchall()
     if len(foods) != 1:
         flash("Invalid food item!")
         return redirect("/")
 
     leftovers = foods[0]["portions"] - consumed
-    db.execute("UPDATE foods SET portions = ? WHERE (id, user_id, name) = (?, ?, ?)", leftovers, id, session["user_id"], name)
-
-    #if leftovers == 0:
-        #db.execute("UPDATE foods SET portions = ? WHERE (id, user_id, name) = (?, ?, ?)", 0, id, session["user_id"], name)
-    #else:
-
+    db.execute("UPDATE foods SET portions = ? WHERE (id, user_id, name) = (?, ?, ?)", (leftovers, id, session["user_id"], name,))
+    db.commit()
+    close_db()
 
     flash("Ate some leftovers!")
     return redirect("/")
@@ -160,18 +185,21 @@ def consume():
 @app.route("/calendar")
 @login_required
 def calendar():
+    db = get_db()
     # Display a calendar with food expiry timelines
 
-    db.execute("DELETE FROM foods WHERE (user_id, portions) = (?, ?)", session["user_id"], 0)
+    db.execute("DELETE FROM foods WHERE (user_id, portions) = (?, ?)", (session["user_id"], 0,))
+    db.commit()
 
-    foods = db.execute("SELECT * FROM foods WHERE user_id =?", session["user_id"])
-    #foods_json = json.dumps(foods)
+    foods = db.execute("SELECT * FROM foods WHERE user_id =?", (session["user_id"],)).fetchall()
+    close_db()
 
     return render_template("calendar.html", foods=foods)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    db = get_db()
     # User reached route via POST
     if request.method == "POST":
         session.clear()
@@ -184,8 +212,8 @@ def login():
             flash("Password not provided")
             return redirect("/login")
 
-        # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        # Query database for username of regular users
+        rows = db.execute("SELECT * FROM users WHERE (username, user_type) = (?, ?)", (request.form.get("username"), "regular",)).fetchall()
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
@@ -194,16 +222,19 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
+        close_db()
 
         return redirect("/")
 
     # User reached route via GET
     else:
+        close_db()
         return render_template("login.html")
 
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
+    db = get_db()
     # User reached route via POST
     if request.method == "POST":
 
@@ -212,8 +243,8 @@ def register():
             flash("Invalid username")
             return redirect("/register")
 
-        # Ensure username is unique
-        rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username"))
+        # Ensure username is unique (for non-google users)
+        rows = db.execute("SELECT * FROM users WHERE username = ?", (request.form.get("username"),)).fetchall()
         if len(rows) >= 1:
             flash("Username has been taken")
             return redirect("/register")
@@ -230,7 +261,8 @@ def register():
 
         # Encrypt password and insert user information into database
         password = generate_password_hash(request.form.get("password"))
-        db.execute("INSERT INTO users (username, hash) VALUES (?, ?)", request.form.get("username"), password)
+        db.execute("INSERT INTO users (username, hash, user_type) VALUES (?, ?, ?)", (request.form.get("username"), password, "regular",))
+        db.commit()
 
         # Redirect user to login
         flash('Successfully registered!')
@@ -239,6 +271,79 @@ def register():
     # User reached route via GET
     else:
         return render_template("register.html")
+    
+
+@app.route("/googlelogin")
+def googlelogin():
+    # Find out what URL to hit for Google login
+    google_provider_cfg = get_google_provider_cfg()
+    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+
+    # Use library to construct the request for login and provide
+    # scopes that for retrieving user's profile from Google
+    request_uri = client.prepare_request_uri(
+        authorization_endpoint,
+        redirect_uri=request.base_url + "/callback",
+        scope=["openid", "email", "profile"],
+    )
+    return redirect(request_uri)
+
+
+@app.route("/googlelogin/callback")
+def callback():
+    db = get_db()
+    # Get authorization code Google sent back
+    code = request.args.get("code")
+
+    # Find out what URL to hit to get tokens to ask for
+    # things on behalf of a user
+    google_provider_cfg = get_google_provider_cfg()
+    token_endpoint = google_provider_cfg["token_endpoint"]
+
+    token_url, headers, body = client.prepare_token_request(
+        token_endpoint,
+        authorization_response=request.url,
+        redirect_url=request.base_url,
+        code=code,
+    )
+    token_response = requests.post(
+        token_url,
+        headers=headers,
+        data=body,
+        auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
+    )
+
+    # Parse the tokens
+    client.parse_request_body_response(json.dumps(token_response.json()))
+
+    # Find and hit URL from Google that gives user information
+    userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
+    uri, headers, body = client.add_token(userinfo_endpoint)
+    userinfo_response = requests.get(uri, headers=headers, data=body)
+
+    # Verify Google email
+    if userinfo_response.json().get("email_verified"):
+        unique_id = userinfo_response.json()["sub"]
+        users_email = userinfo_response.json()["email"]
+        users_name = userinfo_response.json()["given_name"]
+    else:
+        flash("User email not available or not verified by Google.")
+        return redirect("/")
+
+    # Add user to db if new
+    rows = db.execute("SELECT * FROM users WHERE google_id = ?", (unique_id,)).fetchall()
+    if len(rows) < 1:
+        db.execute("INSERT INTO users (google_id, username, email, user_type) VALUES (?, ?, ?, ?)",
+                   (unique_id, users_name, users_email, "google"),)
+        db.commit()
+
+    # Remember which user has logged in
+    rows = db.execute("SELECT * FROM users WHERE google_id = ?", (unique_id,)).fetchall()
+    session["user_id"] = rows[0]["id"]
+
+    close_db()
+
+    return redirect("/")
 
 
 @app.route("/logout")
@@ -246,3 +351,9 @@ def logout():
     # Forget any user_id
     session.clear()
     return redirect("/")
+
+def get_google_provider_cfg():
+    return requests.get(GOOGLE_DISCOVERY_URL).json()
+
+if __name__ == "__main__":
+    app.run(ssl_context="adhoc")

@@ -75,64 +75,6 @@ table td {
     color: white;
 }
 
-.fade-in{
-    animation: fadeIn 3s;
-    -webkit-animation: fadeIn 3s;
-    -moz-animation: fadeIn 3s;
-    -o-animation: fadeIn 3s;
-    -ms-animation: fadeIn 3s;
-}
-
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-@-moz-keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-@-webkit-keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-@-o-keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
-@-ms-keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-
-    100% {
-        opacity: 1;
-    }
-}
-
 .bg {
     animation:slide 3s ease-in-out infinite alternate;
     background-image: linear-gradient(-60deg, #2e944b 50%, rgb(181, 255, 85) 50%);
@@ -143,22 +85,4 @@ table td {
     right:-50%;
     top:0;
     z-index:-1;
-}
-  
-.bg2 {
-    animation-direction:alternate-reverse;
-    animation-duration:4s;
-}
-  
-.bg3 {
-    animation-duration:5s;
-}
-
-@keyframes slide {
-    0% {
-      transform:translateX(-25%);
-    }
-    100% {
-      transform:translateX(25%);
-    }
 }
