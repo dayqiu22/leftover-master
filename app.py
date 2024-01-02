@@ -2,17 +2,17 @@ import datetime
 import json
 import os
 import sqlite3
+import requests
 
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from oauthlib.oauth2 import WebApplicationClient
-import requests
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 
 from db import init_db_command, get_db, close_db
 
-# Google Configuration
+# Google Configuration (boiler plate code from https://realpython.com/flask-google-login/#creating-your-own-web-application)
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = (
